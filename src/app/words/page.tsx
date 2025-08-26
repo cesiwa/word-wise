@@ -16,7 +16,6 @@ export default function WordsPage() {
   const [newMeaning, setNewMeaning] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // localStorage'dan kelimeleri yükle
   useEffect(() => {
     const storedWords = localStorage.getItem("wordwise-words");
     if (storedWords) {
@@ -82,7 +81,6 @@ export default function WordsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Kelimelerim</h1>
         </div>
 
-        {/* Kelime Ekleme Formu */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-xl font-semibold mb-4">Yeni Kelime Ekle</h2>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -123,7 +121,6 @@ export default function WordsPage() {
           </button>
         </div>
 
-        {/* Kelime Listesi */}
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-4">
             Kayıtlı Kelimeler ({words.length})

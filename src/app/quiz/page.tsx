@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, SkipForward, CheckCircle, XCircle } from "lucide-react";
+import { Play, SkipForward, CheckCircle, XCircle, Home } from "lucide-react";
+import Link from "next/link";
+import QuizResults from "./QuizResults";
 
 interface Word {
   id: number;
@@ -14,6 +16,7 @@ interface QuizState {
   score: number;
   showResult: boolean;
   userAnswer: string;
+  isQuizFinished: boolean;
 }
 
 export default function QuizPage() {
@@ -24,6 +27,7 @@ export default function QuizPage() {
     score: 0,
     showResult: false,
     userAnswer: "",
+    isQuizFinished: false,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,7 +35,7 @@ export default function QuizPage() {
     const storedWords = localStorage.getItem("wordwise-words");
     if (storedWords) {
       try {
-        const parsedWords = JSON.parse(storedWords);
+        const parsedWords: Word[] = JSON.parse(storedWords);
         setWords(parsedWords);
       } catch (error) {
         console.error("Error parsing words:", error);
@@ -43,7 +47,6 @@ export default function QuizPage() {
   const startQuiz = () => {
     if (words.length < 3) return;
 
-    // Kelimeleri karıştır
     const shuffled = [...words].sort(() => Math.random() - 0.5);
     setQuizWords(shuffled.slice(0, Math.min(10, words.length)));
     setQuizState({
@@ -51,6 +54,7 @@ export default function QuizPage() {
       score: 0,
       showResult: false,
       userAnswer: "",
+      isQuizFinished: false,
     });
   };
 
@@ -70,8 +74,13 @@ export default function QuizPage() {
   };
 
   const nextQuestion = () => {
-    if (quizState.currentIndex >= quizWords.length - 1) {
-      // Quiz bitti
+    const isLastQuestion = quizState.currentIndex >= quizWords.length - 1;
+
+    if (isLastQuestion) {
+      setQuizState((prev) => ({
+        ...prev,
+        isQuizFinished: true,
+      }));
       return;
     }
 
@@ -81,6 +90,17 @@ export default function QuizPage() {
       showResult: false,
       userAnswer: "",
     }));
+  };
+
+  const restartQuiz = () => {
+    setQuizState({
+      currentIndex: 0,
+      score: 0,
+      showResult: false,
+      userAnswer: "",
+      isQuizFinished: false,
+    });
+    setQuizWords([]);
   };
 
   if (isLoading) {
@@ -104,13 +124,27 @@ export default function QuizPage() {
               Quiz yapabilmek için en az 3 kelime eklemen gerekiyor. Şu anda{" "}
               {words.length} kelimen var.
             </p>
-            <a
+            <Link
               href="/words"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg inline-flex items-center"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg inline-flex items-center justify-center"
             >
               Kelime Ekle
-            </a>
+            </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (quizState.isQuizFinished) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-2xl mx-auto px-4">
+          <QuizResults
+            score={quizState.score}
+            totalQuestions={quizWords.length}
+            onRestart={restartQuiz}
+          />
         </div>
       </div>
     );
@@ -125,8 +159,8 @@ export default function QuizPage() {
               Kelime Quizine Hazır mısın?
             </h1>
             <p className="text-gray-600 mb-8">
-              {words.length} kelime arasından rastgele seçilecek 10 kelimenin
-              anlamını bilmeye çalış!
+              {words.length} kelime arasından rastgele seçilecek{" "}
+              {Math.min(10, words.length)} kelimenin anlamını bilmeye çalış!
             </p>
             <button
               onClick={startQuiz}
@@ -148,14 +182,13 @@ export default function QuizPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
-        {/* Progress Bar */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700">
               Soru {quizState.currentIndex + 1}/{quizWords.length}
             </span>
             <span className="text-sm font-medium text-gray-700">
-              Skor: {quizState.score}
+              Skor: {quizState.score}/{quizState.currentIndex}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -166,7 +199,6 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Quiz Card */}
         <div className="bg-white p-8 rounded-lg shadow-md">
           {!quizState.showResult ? (
             <>
