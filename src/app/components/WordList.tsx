@@ -19,7 +19,6 @@ export default function WordList({ words, onDeleteWord }: WordListProps) {
       </div>
     );
   }
-
   return (
     <div className="space-y-3">
       {words.map((word) => (
